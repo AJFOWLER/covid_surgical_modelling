@@ -18,6 +18,7 @@ file_links = get_HES_filelink(years) #eyeball to ensure '-proc-'
 cleaned_files = lapply(file_links, function(x)download_hes_records_clean(x))
 
 ' Data for core analysis downloaded on 18May2020'
+' Data for analysis post-peer review on 13July2020' #(no change to data accessed)
 names(cleaned_files) = years
 
 ##################
@@ -115,15 +116,16 @@ which(!(all_dat$class1 + all_dat$elective) == all_dat$Admissions)
 all_dat[, new_daycase := `Day case`+ ElectiveDC]
 all_dat[, inpatient := c_ceiling(((FCE - new_daycase)/FCE)*elective)] #c_ceiling as whole numbers
 
+all_dat[,`Mean time waited` := as.integer(`Mean time waited`)]
 # those with mean wait <4 weeks ==> class 2
 # page 117 of data dictionary: wait time is difference in days
-all_dat[,class2 := integer(1L)][`Mean time waited` < 28, class2 := elective ]
+all_dat[,class2 := integer(0L)][`Mean time waited` < 28, class2 := elective ]
 
 # those with mean wait <12 weeks ==> class 3
-all_dat[,class3 := integer(1L)][`Mean time waited` >=28 & `Mean time waited` < 85, class3 := elective ]
+all_dat[,class3 := integer(0L)][`Mean time waited` >=28 & `Mean time waited` < 85, class3 := elective ]
 
 # all else ==> class 4
-all_dat[,class4 := integer(1L)][`Mean time waited` >= 85, class4 := elective ]
+all_dat[,class4 := integer(0L)][`Mean time waited` >= 85, class4 := elective ]
 
 ## assignment done ##
 
@@ -563,7 +565,7 @@ fig_3 = ggplot(restart_plot)+
 ###########################
 # peer review sensitivity #
 ###########################
-
+# 
 #######################################################
 # all surgery restarts on 1st June and takes 6 months #
 #######################################################
