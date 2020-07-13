@@ -467,13 +467,14 @@ selected_resource = selected_[3:14]
 
 #make eu == 1 for GBP costs
 performed = resource_calculator(resource_dat = restart_performed, selected_months = selected_resource, eu = 1.09766, tots=TRUE)
+# if(class) errors are fine and can be ignored
 deficit = resource_calculator(resource_dat = deficit_roll, selected_months = selected_resource, eu=1.09766, tots = FALSE)
 
-write.csv(performed[[1]], 'resources_1.csv') # overall table
-write.csv(performed[[2]], 'resource_2.csv') # excess tables
-write.csv(deficit[[1]], 'resources_3.csv')
-# due to the very large digits in total cost values; these are printed without proper formatting #
-# need to manually combine together 
+# these each return a list of two tables#
+# first === costs/resource implications.
+# second === grand totals
+# due to rounding across classes there may be very minor differences in terms of count*cost (e.g. value for bed day cost which = number ip * 222 * eu 
+# is slightly different after rounding across classes)
 
 #########
 # plots #

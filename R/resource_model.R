@@ -9,12 +9,10 @@ prop_table_calcs = function(value, class_, measure_ = '_prop_bed'){
   # paste class and measure together
   select_prop_t = paste0(class_, measure_)
   # select correct multiplier from prop_table_w, which is tagged by class_measure
-  multipliers = prop_table_w[,..select_prop_t]
-  
+  multipliers = prop_table_w[,..select_prop_t] # BAD PRACTICE here
   return(unlist(lapply(1:length(value), function(x) sum_d(value[[x]]*multipliers[[x]]))))
   # return the output which is value passed * multipliers
 }
-
 
 #return data table collapsing selected_*multiply with !selected_
 dt_return = function(dt, multiply, selected_months){
@@ -24,11 +22,11 @@ dt_return = function(dt, multiply, selected_months){
 
 
 select_months_return = function(selected_months){
+  # initialise selected months to reduce duplication
   dt_return = function(dt, multiply){
     return(cbind(dt[,!..selected_months], c_ceiling(dt[,..selected_months]*multiply)))
   }
 }
-
 
 select_resource_return = function(selected_months){
   #initialise with selected_months and then can run over easily
@@ -41,9 +39,13 @@ select_resource_return = function(selected_months){
 }
 
 totalled_costs = function(resource_list, list_of_summed_vars, selected_months){
+  #calculate totals for specific resources (e.g. grand high/grand low etc)
   e_l = rbindlist(resource_list[list_of_summed_vars])
   e_l_c = e_l[,lapply(.SD, function(x) c_ceiling(sum_d(x))), .SDcols = selected_months, by=measure]
-  e_l_c_format = e_l_c[, lapply(.SD, function(x) nice_format(x)), .SDcols = selected_months]
+  #add summed total column
+  e_l_c[,total := Reduce(sum_d, .SD), .SDcols = selected_months, by=measure]
+  e_l_c_format = e_l_c[, lapply(.SD, function(x) nice_format(x)), .SDcols = c(selected_months, 'total')]
+  
   return(e_l_c_format)
 }
 
@@ -51,8 +53,9 @@ totalled_costs = function(resource_list, list_of_summed_vars, selected_months){
 return_total = function(x, selected_months){
 
   # sum across selected months
-  values = x[, as.integer64(Reduce(sum_d, .SD)), .SDcols = selected_months, by=measure]
   
+  values = x[, as.integer64(Reduce(sum_d, .SD)), .SDcols = selected_months, by=measure]
+  # as.integer64 because billions mishandled by 32bit numeric values  
   # interesting problem with cost; this is value is large and >32bit number
   
   return(nice_format(values))
@@ -63,10 +66,11 @@ return_total = function(x, selected_months){
 resource_calculator = function(resource_dat, selected_months, eu, tots = TRUE){
   # for calculations we need to work out bed days, day case, cost and ip. 
   # then we can do simple multiplications to determine the overall costs associated
-  
   # initialise resource returners:
   dt_r = select_months_return(selected_months)
+  # columns to be used
   touse = c('measure', 'class_', selected_months)
+  # get dat restricted to selected_months
   resource_dat = resource_dat[,..touse]
   
   # bed days
@@ -108,7 +112,7 @@ resource_calculator = function(resource_dat, selected_months, eu, tots = TRUE){
   ct[,class_:= 'class1']
   ct_cost = dt_r(ct, 69*eu)
   
-  gown_low = dt_r(resource_dat, (4*3)*eu) # 4 people at cost of 3
+  gown_low = dt_r(resource_dat, (4*3)*eu) # 4 people at cost of £3
   gown_high = dt_r(resource_dat, (8*3)*eu) # 8 people at cost of 3
 
   # visor cost == ffp3 cost hence repeated below.
@@ -118,7 +122,7 @@ resource_calculator = function(resource_dat, selected_months, eu, tots = TRUE){
   gloves_low = dt_r(resource_dat, (0.298*4)*eu)
   gloves_high = dt_r(resource_dat, (0.298*8)*eu)
 
-  all_ppe_low = dt_r(resource_dat, (9.098*4)*eu) #cost of a donn
+  all_ppe_low = dt_r(resource_dat, (9.098*4)*eu) #cost of a donn for one person
   all_ppe_high = dt_r(resource_dat, (9.098*8)*eu)
   
   # now construct overall costs and format
@@ -146,7 +150,7 @@ resource_calculator = function(resource_dat, selected_months, eu, tots = TRUE){
   excess_grand_high = totalled_costs(resources, c(excess_high, 'cost'), selected_months = selected_months)
   
   excesses_ = rbindlist(list(excess_l_formatted, excess_h_formatted, excess_grand_low, excess_grand_high), idcol = T)
-  
+  excesses_$totals = c('low_excess', 'high_excess', 'low_grand', 'high_grand')
   if(tots == TRUE){
     out_frame = cbind(out_frame, 'Total' = unlist(lapply(resources, return_total, selected_months = selected_resource)))
     return(list(out_frame, excesses_))
