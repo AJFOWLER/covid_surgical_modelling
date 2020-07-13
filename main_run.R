@@ -117,15 +117,19 @@ all_dat[, new_daycase := `Day case`+ ElectiveDC]
 all_dat[, inpatient := c_ceiling(((FCE - new_daycase)/FCE)*elective)] #c_ceiling as whole numbers
 
 all_dat[,`Mean time waited` := as.integer(`Mean time waited`)]
+
+# make empty cols
+all_dat[,c('class2', 'class3', 'class4') := 0]
+
 # those with mean wait <4 weeks ==> class 2
 # page 117 of data dictionary: wait time is difference in days
-all_dat[,class2 := integer(0L)][`Mean time waited` < 28, class2 := elective ]
+all_dat[`Mean time waited` < 28, class2 := as.integer(elective)]
 
 # those with mean wait <12 weeks ==> class 3
-all_dat[,class3 := integer(0L)][`Mean time waited` >=28 & `Mean time waited` < 85, class3 := elective ]
+all_dat[`Mean time waited` >=28 & `Mean time waited` < 85, class3 := as.integer(elective)]
 
 # all else ==> class 4
-all_dat[,class4 := integer(0L)][`Mean time waited` >= 85, class4 := elective ]
+all_dat[`Mean time waited` >= 85, class4 := as.integer(elective)]
 
 ## assignment done ##
 
@@ -170,7 +174,7 @@ rm(all_dat, opcs_codes, suppl_1)
 # Model procedures per annum  #
 ###############################
 'this is based on linear model for each procedure for each class 
-extrapolated initially to 2019/20, extend to 2020/2021'
+extrapolated to 2019/20 and 2020/2021'
 
 # sum of procedures by class for each procedure group and each year
 proc_grouped = all_dat_surg[,lapply(.SD, sum), .SDcols = cols, by=.(proc_group, Year)]
@@ -238,6 +242,8 @@ table1.3 = mapply(paster_iqr, table1.1, table1.2)
 # Median procedures by month and class clean #
 table1.3
 
+# The wide IQR in class3/class4 procedures reflects the shifting of procedures broadly from class 3-->4 over study period.
+
 rm(procs_per_year, procs_per_y_melt, emerg, non_emerg, table1, table1.1, table1.2, table1.3)
 
 ###################################
@@ -304,14 +310,14 @@ selected_columns = names(all_comb_c)[c(1,2,12:ncol(all_comb_c))]
 
 all_comb_roll = all_comb_c[,..selected_columns]
 
-selected_ =  selected_columns[3:17]
+selected_ =  selected_columns[3:17] # select Jan2019-March2021
 # deficit is the accumulation of non-done procedures
 # january + february, all procedures happen so not done == 0
 # March class2 = 0.8, class 3&4 = 0.5, class 1 = 1
 # April onwards assuming nil activity in class 2-4
 all_comb_roll[,january_2019 := 0]
 all_comb_roll[,february_2019 := 0]
-all_comb_roll[class_ == 'class1', (selected_) := 0]
+all_comb_roll[class_ == 'class1', (selected_) := 0] # all class 1 done.
 all_comb_roll[class_ == 'class2', march_2019 :=c_ceiling(march_2019*0.2)] # 80% done so 20% remaining
 all_comb_roll[class_ %in% c('class3', 'class4'), march_2019 := c_ceiling(march_2019*0.5)] # 50% done in classes 3&4 in march
 
@@ -342,7 +348,6 @@ all_comb_c2[, march_2019 := c_ceiling(march_2019*0.8)] # march is 80% of normal 
 scenario_cols = selected_[4:length(selected_)]
 
 # then four scenarios; 20/40/60/80% procedures done #
-
 scenarios = lapply(c(0.2,0.4,0.6,0.8), function(x) cbind(all_comb_c2[,!..scenario_cols],c_ceiling(all_comb_c2[, ..scenario_cols]*x)))
 names(scenarios) = c('twenty', 'forty', 'sixty', 'eighty')
 scenarios_c2 = rbindlist(scenarios, idcol = T)
@@ -447,6 +452,7 @@ source(paste0(getwd(), '/R/proportions_table.R'))
 # returns 'prop_table_w' which is used for resource estimations
 setDT(prop_table_w) # should have dim 27*1073
 
+dim(prop_table_w)
 #########################
 # resource implications #
 #########################
