@@ -469,6 +469,7 @@ selected_resource = selected_[3:14]
 performed = resource_calculator(resource_dat = restart_performed, selected_months = selected_resource, eu = 1.09766, tots=TRUE)
 # if(class) errors are fine and can be ignored
 deficit = resource_calculator(resource_dat = deficit_roll, selected_months = selected_resource, eu=1.09766, tots = FALSE)
+# ignore deficit_roll grand total
 
 # these each return a list of two tables#
 # first === costs/resource implications.
@@ -476,6 +477,11 @@ deficit = resource_calculator(resource_dat = deficit_roll, selected_months = sel
 # due to rounding across classes there may be very minor differences in terms of count*cost (e.g. value for bed day cost which = number ip * 222 * eu 
 # is slightly different after rounding across classes)
 
+write.csv(performed[[1]], 'reintroduction_costs.csv')
+write.csv(performed[[2]], 'reintroduction_grand_costs.csv')
+
+write.csv(deficit[[1]], 'deficit_costs.csv')
+write.csv(deficit[[2]], 'deficit_grand_costs.csv')
 #########
 # plots #
 #########
@@ -616,3 +622,4 @@ tots[,class_ := 'total']
 # key table      #
 ##################
 cumul_def = rbind(clean_fit_by_mo(deficit_roll), clean_fit_by_mo(tots))
+write.csv(cumul_def, file = 'sensitivity_analysis.csv', row.names = T)
