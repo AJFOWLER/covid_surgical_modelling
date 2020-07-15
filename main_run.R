@@ -242,6 +242,11 @@ table1.3 = mapply(paster_iqr, table1.1, table1.2)
 # Median procedures by month and class clean #
 table1.3
 
+# Overall median
+table1.1[,median(unlist(lapply(.SD, sum))),.SDcols=(2:13)] #382,768
+# Overall IQR
+table1.1[,IQR(unlist(lapply(.SD, sum))), .SDcols=(2:13)] #22,890
+
 # The wide IQR in class3/class4 procedures reflects the shifting of procedures broadly from class 3-->4 over study period.
 
 rm(procs_per_year, procs_per_y_melt, emerg, non_emerg, table1, table1.1, table1.2, table1.3)
@@ -299,6 +304,8 @@ all_comb.3 = dcast(all_comb.2, class_~variable, value.var = 'format_col')
 #all_comb.3 is the clean version with 95% CI formatted nicely #
 rm(all_comb.1, all_comb.2, melted_all_comb)
 
+# total expected procedures 1st March 2020 to 28th February 2021 #
+melted_all_comb[(Year == '2020' | pasted == 'march_2019') & pasted != 'march_2020',sum(value), by=measure]
 
 #################
 # deficit table #
@@ -333,10 +340,11 @@ tots[,class_ := 'total']
 
 # deficit assuming no surgical activity after March in classes 2,3,4, class 1 continues per normal
 # supplementary table 6 in final manuscript, note the table in the manuscript only runs until february 2020.
-table3 = rbind(clean_fit_by_mo(deficit_c), clean_fit_by_mo(tots))
+suppl_6 = rbind(clean_fit_by_mo(deficit_c), clean_fit_by_mo(tots))
 
-write.csv(table3, 'new_suppl_6.csv')
-------------------------------------------------------------
+# class 1 and class continue at normal levels #
+tots_34only = deficit_c[class_ %in% cols[3:4], lapply(.SD, sum_d), .SDcols = selected_, by=measure]
+
 #####################
 # class 2 scenarios #
 #####################
@@ -344,9 +352,7 @@ write.csv(table3, 'new_suppl_6.csv')
 # first calculate procedures done #
 all_comb_c2 = all_comb_c[class_ == 'class2', ..selected_columns]
 all_comb_c2[, march_2019 := c_ceiling(march_2019*0.8)] # march is 80% of normal activity
-
 scenario_cols = selected_[4:length(selected_)]
-
 # then four scenarios; 20/40/60/80% procedures done #
 scenarios = lapply(c(0.2,0.4,0.6,0.8), function(x) cbind(all_comb_c2[,!..scenario_cols],c_ceiling(all_comb_c2[, ..scenario_cols]*x)))
 names(scenarios) = c('twenty', 'forty', 'sixty', 'eighty')
@@ -354,23 +360,7 @@ scenarios_c2 = rbindlist(scenarios, idcol = T)
 
 #calcualte new deficit by subtracting the actual number expected from all_comb_c away from the number expected to continue 
 scen_deficit = lapply(scenarios, function(x) cbind(x[,!..selected_], all_comb_c[class_ == 'class2', ..selected_]-x[,..selected_]))
-
-# then calculate rolling deficit from these scenarios #
-deficit_cumsum = lapply(scen_deficit, function(x) x[,apply(.SD, 1, function(x) c_ceiling(cumsum(x))), .SDcols = selected_])
-
-deficit_cumsum_list = lapply(deficit_cumsum, function(x) setDT(as.data.frame(t(x))))
-names(deficit_cumsum_list) = c('twenty', 'forty', 'sixty', 'eighty')
-deficit_c2 = rbindlist(deficit_cumsum_list, idcol = T)
-
-deficit_c2[, 'class_' := 'class2']
-deficit_c2[, 'measure' := rep(cols_over,4)]
-
-# deficit_c2 is the deficit table from scenarios
-# scenarios is the number of procedures done under scenarios 
-# scen_deficit is the deficit under scenarios #
-table7 = deficit_c2[, lapply(.SD, nice_format), by=.id, .SDcols = 2:16]
-
-write.csv(table7, 'new_suppl_table7.csv')
+scen_deficit = rbindlist(scen_deficit, idcol = T)
 
 #########################
 # surgery restart       #
@@ -586,8 +576,21 @@ restart_performed_2 = scenarios_c2[.id =='eighty', ..selected_columns] # is clas
 
 june_restart = selected_[6:12]
 
+prop_fun_six = function(x,y){
+  #@x = value
+  #@y = position
+  return(c_ceiling((x/6)*y)) #return fraction by position if use 1:length(mo)
+}
+
+diff_fun_six = function(x,y){
+  # for june because we need to account for ceiling from 80% baseline
+  gap = c_ceiling(x*1.25 - x)
+  done = prop_fun_six(gap, y)
+  return(x+done)
+}
 # diff fun gets the difference between performed and expected for a given mo, then fractional proportion of those performed
-restart_performed_2[,(june_restart) := do.call(diff_fun, list(.SD, 1:length(june_restart))),  .SDcols = june_restart, by='measure']
+restart_performed_2[,(june_restart) := do.call(diff_fun_six, list(.SD, 1:length(june_restart))),  .SDcols = june_restart, by='measure']
+
 # back at full capacity after june_restart period (x*1.25 because baseline is 80%)
 restart_performed_2[,(selected_[13:15]) := lapply(.SD, function(x) c_ceiling(x*1.25)), .SDcols = selected_[13:15], by='measure']
 
@@ -596,7 +599,7 @@ restart_performed_34 = all_comb_c[class_ %in% cols[3:4], ..selected_columns]
 # march at 50%
 restart_performed_34[,march_2019 := c_ceiling(march_2019*0.5)]
 restart_performed_34[,(selected_[4:5]) := 0] # no activity between april-may
-restart_performed_34[, (june_restart) := do.call(prop_fun, list(.SD, 1:length(june_restart))), .SDcols = june_restart, by=c('measure', 'class_')]
+restart_performed_34[, (june_restart) := do.call(prop_fun_six, list(.SD, 1:length(june_restart))), .SDcols = june_restart, by=c('measure', 'class_')]
 
 restart_performed = rbind(all_comb_c[class_ == 'class1', ..selected_columns], restart_performed_2, restart_performed_34)
 
