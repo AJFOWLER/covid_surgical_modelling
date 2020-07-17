@@ -581,12 +581,14 @@ a # this is the age proportions table.
 #######################################################
 restart_performed_2 = scenarios_c2[.id =='eighty', ..selected_columns] # is class 2 procedures performed at 80% capacity
 
-june_restart = selected_[6:12]
+june_restart = selected_[6:12] # this is over 6 months, and means that the first 'full month' is after 6 months build up.
+
+#-june-july-august-september-october-november build up, december back at full.
 
 prop_fun_six = function(x,y){
   #@x = value
   #@y = position
-  return(c_ceiling((x/6)*y)) #return fraction by position if use 1:length(mo)
+  return(c_ceiling((x/7)*y)) #return fraction by position if use 1:length(mo)
 }
 
 diff_fun_six = function(x,y){
@@ -595,6 +597,7 @@ diff_fun_six = function(x,y){
   done = prop_fun_six(gap, y)
   return(x+done)
 }
+
 # diff fun gets the difference between performed and expected for a given mo, then fractional proportion of those performed
 restart_performed_2[,(june_restart) := do.call(diff_fun_six, list(.SD, 1:length(june_restart))),  .SDcols = june_restart, by='measure']
 
