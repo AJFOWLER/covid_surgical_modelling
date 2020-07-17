@@ -6,10 +6,14 @@
 prop_table_calcs = function(value, class_, measure_ = '_prop_bed'){
   # prop bed as standard, can also be '_prop_dc' or '_proportional_cost'
   if(!(measure_ %in% c('_prop_bed', '_prop_dc', '_proportional_cost'))){stop('must be one of _prop_bed, _prop_dc, _proportional_cost')}
+  
   # paste class and measure together
   select_prop_t = paste0(class_, measure_)
+  
   # select correct multiplier from prop_table_w, which is tagged by class_measure
-  multipliers = prop_table_w[,..select_prop_t] # BAD PRACTICE here
+  
+  multipliers = prop_table_w[,..select_prop_t] ## not ideal to call something outside direct namespace but this is a very particular use case.
+  
   return(unlist(lapply(1:length(value), function(x) sum_d(value[[x]]*multipliers[[x]]))))
   # return the output which is value passed * multipliers
 }
@@ -78,6 +82,9 @@ resource_calculator = function(resource_dat, selected_months, eu, tots = TRUE){
 
   # day case
   dcase = cbind(resource_dat[,!..selected_months],resource_dat[,lapply(.SD, function(x) prop_table_calcs(x, class_, '_prop_dc')), .SDcols = selected_months])
+  
+  # no emergency procedures are day case
+  dcase[class_=='class1', (selected_months):=0]
 
   # cost from HRGs
   cost = cbind(resource_dat[,!..selected_months],resource_dat[,lapply(.SD, function(x) prop_table_calcs(x, class_, '_proportional_cost')), .SDcols = selected_months])

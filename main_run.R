@@ -464,6 +464,7 @@ performed = resource_calculator(resource_dat = restart_performed, selected_month
 deficit = resource_calculator(resource_dat = deficit_roll, selected_months = selected_resource, eu=1.09766, tots = FALSE)
 # ignore deficit_roll grand total
 
+
 # these each return a list of two tables#
 # first === costs/resource implications.
 # second === grand totals
