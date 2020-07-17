@@ -302,7 +302,7 @@ all_comb.3 = dcast(all_comb.2, class_~variable, value.var = 'format_col')
 
 # for tables may wish to limit to January 2019: march 2020 #
 #all_comb.3 is the clean version with 95% CI formatted nicely #
-rm(all_comb.1, all_comb.2, melted_all_comb)
+rm(all_comb.1, all_comb.2)
 
 # total expected procedures 1st March 2020 to 28th February 2021 #
 melted_all_comb[(Year == '2020' | pasted == 'march_2019') & pasted != 'march_2020',sum(value), by=measure]
@@ -318,6 +318,7 @@ selected_columns = names(all_comb_c)[c(1,2,12:ncol(all_comb_c))]
 all_comb_roll = all_comb_c[,..selected_columns]
 
 selected_ =  selected_columns[3:17] # select Jan2019-March2021
+
 # deficit is the accumulation of non-done procedures
 # january + february, all procedures happen so not done == 0
 # March class2 = 0.8, class 3&4 = 0.5, class 1 = 1
@@ -353,6 +354,7 @@ tots_34only = deficit_c[class_ %in% cols[3:4], lapply(.SD, sum_d), .SDcols = sel
 all_comb_c2 = all_comb_c[class_ == 'class2', ..selected_columns]
 all_comb_c2[, march_2019 := c_ceiling(march_2019*0.8)] # march is 80% of normal activity
 scenario_cols = selected_[4:length(selected_)]
+
 # then four scenarios; 20/40/60/80% procedures done #
 scenarios = lapply(c(0.2,0.4,0.6,0.8), function(x) cbind(all_comb_c2[,!..scenario_cols],c_ceiling(all_comb_c2[, ..scenario_cols]*x)))
 names(scenarios) = c('twenty', 'forty', 'sixty', 'eighty')
@@ -424,12 +426,13 @@ deficit_roll[, c('class_', 'measure')] = restart_deficit_table[,c('class_', 'mea
 tots = deficit_roll[, lapply(.SD, sum_d), .SDcols = selected_, by=measure]
 tots[,class_ := 'total']
 
+# note rounding issues may push certain cells to +1/-1 #
+
 ##################
 # key table      #
 ##################
 cumul_def = rbind(clean_fit_by_mo(deficit_roll), clean_fit_by_mo(tots))
 # this is the bottom panel of table 1
-write.csv(cumul_def, 'new_table_1_bottom.csv')
 
 #2.32 M procedures cancelled by March 1st.
 ' ------------------------------------------------------------------------------------------'
@@ -467,11 +470,6 @@ deficit = resource_calculator(resource_dat = deficit_roll, selected_months = sel
 # due to rounding across classes there may be very minor differences in terms of count*cost (e.g. value for bed day cost which = number ip * 222 * eu 
 # is slightly different after rounding across classes)
 
-write.csv(performed[[1]], 'reintroduction_costs.csv')
-write.csv(performed[[2]], 'reintroduction_grand_costs.csv')
-
-write.csv(deficit[[1]], 'deficit_costs.csv')
-write.csv(deficit[[2]], 'deficit_grand_costs.csv')
 #########
 # plots #
 #########
@@ -564,6 +562,14 @@ fig_3 = ggplot(restart_plot)+
   theme(axis.text.x=element_text(hjust=2), legend.position = "bottom", legend.text = element_text(size = 10,face = 'bold'),axis.text = element_text(size=12,face = 'bold'), axis.title = element_text(size=12, face = 'bold'))
 
 # figure three needs a little manual cleaning to sort out the x axis labels.
+
+#######################
+# age tables #
+##############
+
+source(paste0(getwd(), '/R/age_profiling.R'))
+
+a # this is the age proportions table.
 
 ###########################
 # peer review sensitivity #

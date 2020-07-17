@@ -3,7 +3,7 @@
 ##########################################
 
 'Create a table per-OPCS code & class that 
-enables subsequent calculation of the proportion
+enables subsequent estimation of the proportion
 each should contribute to different features
 '
 # these are cols to run over
@@ -20,6 +20,8 @@ median_LOS = all_dat_surg[,.(median(`Median length of stay`, na.rm=T)), by=OPCS]
 
 # mean number of admissions and class by OPCS codes
 adm_class = all_dat_surg[, lapply(.SD, function(x) mean(x,na.rm=T)), .SDcols = cols_, by=OPCS]
+# note this is mean of years of data present; handful of codes only present for a small number of years so might be slightly over represented
+# these account for <0.05% of procedures so will not meaningfully influence our estimations
 
 # merging all of the above together with standard data.table syntax
 prop_table_w = mean_ip[mean_LOS, on='OPCS'][median_LOS, on='OPCS'][adm_class, on='OPCS', `:=`('admissions' = i.Admissions, 'class1' = i.class1, 'class2' = i.class2, 'class3' = i.class3, 'class4' = i.class4)]
@@ -32,6 +34,8 @@ rm(mean_ip, mean_LOS, median_LOS, adm_class)
 ######################################################################
 # Calculate proportion to each class that each procedure contributes #
 ######################################################################
+
+# note all is class based from here on down as rounding/averaging by main admission counts adds additional complexity #
 
 # make columns for return
 return_cols = do.call(paste0, list(cols, '_proportion'))

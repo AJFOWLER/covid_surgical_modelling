@@ -2,7 +2,6 @@
 # 1. Identify urls of interest for years of interest #
 ######################################################
 
-# this works beautifully
 get_HES_url <- function(years) { #year format = 1999,2000 etc. as list c(year,year,year)
   
   base_before_15 <- "https://digital.nhs.uk/data-and-information/publications/statistical/hospital-admitted-patient-care-activity/hospital-episode-statistics-admitted-patient-care-england"
@@ -36,7 +35,7 @@ get_HES_url <- function(years) { #year format = 1999,2000 etc. as list c(year,ye
 # 2: URLS of interest for years of interest #
 #############################################
 
-# two parameters; years (vector), diag_op(character, options = 'ops', 'diag', 'both'), or both
+# two parameters; years(vector), diag_op(character, options = 'ops', 'diag', 'both'), or both
 get_HES_filelink <- function(years, diag_op = 'ops'){
   if(toupper(diag_op) == 'OPS'){
     diag_op_grep = 'ops|proc-'
@@ -131,15 +130,15 @@ find_header_hes = function(dat){
 
 # return values from typed options
 type_integer = function(prompt_text){
-n = readline(prompt = prompt_text)
-if(tolower(n) == 'n'){
-  n = 'No total'
-}
-else{
-  n = as.integer(n)
-}
-return(n)
-}
+  n = readline(prompt = prompt_text)
+  if(tolower(n) == 'n'){
+    n = 'No total'
+  }
+  else{
+    n = as.integer(n)
+  }
+  return(n)
+  }
 
 # replace '*' with 7 #
 drop_star=function(x) as.data.frame(apply(x, 2, function(y) gsub('[*]', '7', y)))
@@ -177,13 +176,13 @@ plot_MAR_data = function(x, variable, average, grouper, ...){
       theme_bw()
 }
 
+# model functions #
 
 # prediction function #
 pred_fun = function(model){
   return(predict(model, interval = c('confidence'), level = 0.95, type='response', newdata = data.frame(x=2014:2021)))
 }
 
-# model functions #
 # modelling function for dt
 model_fun_dt = function(lhs, year){
   y = lhs
@@ -219,11 +218,10 @@ clean_fit_by_mo = function(dt){
   return(cp.3)
   }
 
-
-
 # format table_1
 paster_iqr = function(x,y){paste0(x, ' (', y,')')}
 
+# nice format generic
 nice_format = function(a){
   if(class(a) %in% c('data.table', 'data.frame')){
     fit = a[1,2]
@@ -242,7 +240,7 @@ nice_format = function(a){
   return(paste0(thousand_gap(c_ceiling(fit)), ' (', thousand_gap(c_ceiling(lwr)), ' to ', thousand_gap(c_ceiling(upr)), ')'))
 }
 
-
+# functions for return of surgery
 prop_fun = function(x,y){
   #@x = value
   #@y = position
@@ -250,7 +248,7 @@ prop_fun = function(x,y){
 }
 
 diff_fun = function(x,y){
-  # for june because we need to account for ceiling from 80% baseline
+  # for june class2 because we need to account for ceiling from 80% baseline
   gap = c_ceiling(x*1.25 - x)
   done = prop_fun(gap, y)
   return(x+done)
