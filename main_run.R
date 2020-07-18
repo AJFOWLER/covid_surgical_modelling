@@ -464,7 +464,6 @@ performed = resource_calculator(resource_dat = restart_performed, selected_month
 deficit = resource_calculator(resource_dat = deficit_roll, selected_months = selected_resource, eu=1.09766, tots = FALSE)
 # ignore deficit_roll grand total
 
-
 # these each return a list of two tables#
 # first === costs/resource implications.
 # second === grand totals
@@ -562,6 +561,7 @@ fig_3 = ggplot(restart_plot)+
   scale_x_discrete(labels = xlabs[2:15])+
   theme(axis.text.x=element_text(hjust=2), legend.position = "bottom", legend.text = element_text(size = 10,face = 'bold'),axis.text = element_text(size=12,face = 'bold'), axis.title = element_text(size=12, face = 'bold'))
 
+fig_3
 # figure three needs a little manual cleaning to sort out the x axis labels.
 
 #######################

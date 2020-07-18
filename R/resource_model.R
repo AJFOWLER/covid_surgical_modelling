@@ -144,11 +144,11 @@ resource_calculator = function(resource_dat, selected_months, eu, tots = TRUE){
   
   out_frame = rbindlist(lapply(resources, return_resource), idcol = T)
   
-  excess_low = c('ppe_l', 'bdcost_l', 'swabscost', 'ct_cost', 'all_ppe_low')
+  excess_low = c('bdcost_l', 'swabscost', 'ct_cost', 'all_ppe_low')
   
   excess_l_formatted = totalled_costs(resources, excess_low, selected_months=selected_months)
   
-  excess_high = c('ppe_h', 'bdcost_h', 'swabscost', 'ct_cost', 'all_ppe_high')
+  excess_high = c('bdcost_h', 'swabscost', 'ct_cost', 'all_ppe_high')
   
   excess_h_formatted = totalled_costs(resources, excess_high, selected_months=selected_months)
   
