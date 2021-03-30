@@ -4,16 +4,16 @@
 
 # start with all_comb from line 279 #
 # don't need to do this at the level of the class as we just need overall numbers
-core_assumptions <- list('march20' = .6, 'april20' = .25, 'may20' = .30, 'june20' = .35, 'july20' = .35, 'august20' = .45)
-
-lockdown_assumptions <- append(core_assumptions, list('september20' = .55, 'october20' = .65, 'november20' = 0.5, 'december20' = .25, 'january21' = .3, 'february21' = .25, 'march21' = .35,
-                               'april21' = .45, 'may21' = .55, 'june21' = .65))
-
-persist_assumptions <- append(core_assumptions, list('september20' = .55, 'october20' = .55, 'november20' = 0.55, 'december20' = .55, 'january21' = .55, 'february21' = .55, 'march21' = .65,
-                                                      'april21' = .75, 'may21' = .85, 'june21' = .95))
-
-grow_assumptions <- append(core_assumptions, list('september20' = .55, 'october20' = .65, 'november20' = 0.75, 'december20' = .85, 'january21' = .95, 'february21' = 1, 'march21' = 1,
-                                                     'april21' = 1, 'may21' = 1, 'june21' = 1))
+# core_assumptions <- list('march20' = .6, 'april20' = .25, 'may20' = .30, 'june20' = .35, 'july20' = .35, 'august20' = .45)
+# 
+# lockdown_assumptions <- append(core_assumptions, list('september20' = .55, 'october20' = .65, 'november20' = 0.5, 'december20' = .25, 'january21' = .3, 'february21' = .25, 'march21' = .35,
+#                                'april21' = .45, 'may21' = .55, 'june21' = .65))
+# 
+# persist_assumptions <- append(core_assumptions, list('september20' = .55, 'october20' = .55, 'november20' = 0.55, 'december20' = .55, 'january21' = .55, 'february21' = .55, 'march21' = .65,
+#                                                       'april21' = .75, 'may21' = .85, 'june21' = .95))
+# 
+# grow_assumptions <- append(core_assumptions, list('september20' = .55, 'october20' = .65, 'november20' = 0.75, 'december20' = .85, 'january21' = .95, 'february21' = 1, 'march21' = 1,
+#                                                      'april21' = 1, 'may21' = 1, 'june21' = 1))
 
 # assumptions table
 assumption <- data.frame('month' = period, 'year' = c(rep(2019, 12), rep(2020,12), rep(2021, 12)))

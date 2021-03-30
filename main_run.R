@@ -1,6 +1,6 @@
-source(paste0(getwd(),'/R/library.R')) #load libraries
+source('R/library.R') #load libraries
 
-source(paste0(getwd(), '/R/model_funs.R')) # get in all functions needed for modelling
+source('R/model_funs.R') # get in all functions needed for modelling
 
 ##############################
 # LOAD data from NHS England #
@@ -245,7 +245,7 @@ table1.3
 # Overall median
 table1.1[,median(unlist(lapply(.SD, sum))),.SDcols=(2:13)] #382,768
 # Overall IQR
-table1.1[,IQR(unlist(lapply(.SD, sum))), .SDcols=(2:13)] #22,890
+table1.1[,quantile(unlist(lapply(.SD, sum))), .SDcols=(2:13)] #22,890
 
 # The wide IQR in class3/class4 procedures reflects the shifting of procedures broadly from class 3-->4 over study period.
 
